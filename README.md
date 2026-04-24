@@ -14,10 +14,16 @@ sudo cp -r /home/ernst/Documents/logdata-anomaly-miner/source/root/usr/lib/logda
 ## Build Docker Containers Locally
 ```bash
 cd logdata-anomaly-miner
-sudo docker build --build-arg varbranch=development -f Dockerfile -t aminer .
+sudo docker build --build-arg varbranch=development -f Containerfile -t aminer .
 cd ../aminer-rest
-sudo docker build -f Dockerfile -t aminer-rest .
+sudo docker build -f Containerfile -t aminer-rest .
 ```
+
+The `aminer-rest` image now uses `uv` to create an internal `.venv` and install Python dependencies there, instead of writing into the base image's system packages.
+The `aminer-client` service in `compose.yml` discards successful curl output so it does not flood the container logs with blank lines during the test loop.
+`aminer-client` also waits 5 seconds and polls the unauthenticated `aminer-rest` OpenAPI endpoint before sending test data.
+
+`config.ini` also contains `REMOTE_CONTROL_SOCKET_FAILURE_LIMIT` for repeated remote-control socket failures. When the counter exceeds that limit, the process exits so the container is restarted by Compose or the container runtime.
 
 **Volumes must be removed to load changed files in logdata-anomaly-miner.<br>
 No data is stored in this volume.**
